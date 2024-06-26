@@ -10,7 +10,7 @@ contract FundMe {
     using PriceConverter for uint256;
 
     address[] private s_funders;
-    address public immutable i_owner;
+    address private immutable i_owner;
     uint256 public constant MINIMUM_USD = 20e18;
     AggregatorV3Interface private s_priceFeed;
 
@@ -71,6 +71,10 @@ contract FundMe {
 
     fallback() external payable {
         fund();
+    }
+
+    function getOwner() external view returns (address) {
+        return i_owner;
     }
 
     function getAddressToAmountFunded(
