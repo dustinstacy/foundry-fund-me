@@ -10,6 +10,7 @@ contract FundMeTest is Test {
     address user = makeAddr("user");
     uint256 constant VALID_FUNDING_AMOUNT = 0.1 ether;
     uint256 constant STARTING_BALANCE = 10 ether;
+    uint256 constant GAS_PRICE = 0.0000001 ether;
 
     modifier funded() {
         vm.prank(user);
@@ -75,10 +76,30 @@ contract FundMeTest is Test {
         assertEq(endingFundMeBalance, 0);
     }
 
+    function testWithdrawWithASingleFunderCheaper() public funded {
+        //Arrange
+        uint256 startingOwnerBalance = fundMe.getOwner().balance;
+        uint256 startingFundMeBalance = address(fundMe).balance;
+
+        //Act
+        vm.prank(fundMe.getOwner());
+        fundMe.cheaperWithdraw();
+
+        //Assert
+        uint256 endingOwnerBalance = fundMe.getOwner().balance;
+        uint256 endingFundMeBalance = address(fundMe).balance;
+        assertEq(
+            endingOwnerBalance,
+            startingOwnerBalance + startingFundMeBalance
+        );
+        assertEq(endingFundMeBalance, 0);
+    }
+
     function testWithdrawFromMultipleFunders() public funded {
         uint160 numberOfFunders = 10;
         uint160 startingFunderIndex = 1;
         for (uint160 i = startingFunderIndex; i < numberOfFunders; i++) {
+            vm.txGasPrice(GAS_PRICE);
             hoax(address(i), VALID_FUNDING_AMOUNT);
             fundMe.fund{value: VALID_FUNDING_AMOUNT}();
         }
@@ -88,6 +109,30 @@ contract FundMeTest is Test {
 
         vm.prank(fundMe.getOwner());
         fundMe.withdraw();
+
+        uint256 endingOwnerBalance = fundMe.getOwner().balance;
+        uint256 endingFundMeBalance = address(fundMe).balance;
+        assertEq(
+            endingOwnerBalance,
+            startingOwnerBalance + startingFundMeBalance
+        );
+        assertEq(endingFundMeBalance, 0);
+    }
+
+    function testWithdrawFromMultipleFundersCheaper() public funded {
+        uint160 numberOfFunders = 10;
+        uint160 startingFunderIndex = 1;
+        for (uint160 i = startingFunderIndex; i < numberOfFunders; i++) {
+            vm.txGasPrice(GAS_PRICE);
+            hoax(address(i), VALID_FUNDING_AMOUNT);
+            fundMe.fund{value: VALID_FUNDING_AMOUNT}();
+        }
+
+        uint256 startingOwnerBalance = fundMe.getOwner().balance;
+        uint256 startingFundMeBalance = address(fundMe).balance;
+
+        vm.prank(fundMe.getOwner());
+        fundMe.cheaperWithdraw();
 
         uint256 endingOwnerBalance = fundMe.getOwner().balance;
         uint256 endingFundMeBalance = address(fundMe).balance;
