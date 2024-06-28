@@ -30,7 +30,16 @@ contract HelperConfig is Script {
         sepoliaConfig = NetworkConfig({
             priceFeed: 0x694AA1769357215DE4FAC081bf1f309aDC325306
         });
-        return sepoliaConfig;
+    }
+
+    function getZKSyncEthConfig()
+        public
+        pure
+        returns (NetworkConfig memory zkSyncConfig)
+    {
+        zkSyncConfig = NetworkConfig({
+            priceFeed: 0x6D41d1dc818112880b40e26BD6FD347E41008eDA
+        });
     }
 
     function getOrCreateAnvilEthConfig()
@@ -49,6 +58,5 @@ contract HelperConfig is Script {
         vm.stopBroadcast();
 
         anvilConfig = NetworkConfig({priceFeed: address(mockPriceFeed)});
-        return anvilConfig;
     }
 }
